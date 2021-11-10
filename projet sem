@@ -50,3 +50,13 @@ proc sgplot data=xy;
    histogram r14;
    title "Répartition selon la présence d'enfants";
 run;
+
+
+/*PARTIE B*/
+/*
+data xyz ;
+set xy ;
+if (ia1_1 = 1 or ia1_1 = 2 or ia1_1 = 3) then ia1_1 = 0;
+else if (ia1_1 = 4) then ia1_1 = 0.7 ;
+else  ia_1 = 1 ;
+run ; */
