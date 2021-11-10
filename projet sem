@@ -83,7 +83,7 @@ run;
 /*a. Les hommes et les femmes consomment-ils de la même façon du cognac ?
 Réponse : On remarque que les hommes consomment en moyenne plus souvent du cognac que les femmes: 
 On a environ 49 % de réponses positives chez les hommes et 45% de réponses positives chez les femmes. 
-Donc environ 4% d'écart : mais est-ce représentatif ? On a 26 % de femmes qui ont répondu */
+Donc environ 4% d'écart : mais est-ce représentatif ? On a 26.14 % de femmes sur 264 personnes qui ont répondu au questionnaire, ce qui représente 65 personnes environ. */
 
 proc freq data=projet.log_formated;
 tables tranche_age * cognac / cellchi2 chisq nocol nofreq;
