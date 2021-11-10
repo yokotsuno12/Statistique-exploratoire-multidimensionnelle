@@ -1,3 +1,52 @@
 /* PROJET SEM - Chaima Abdellali; Léo Déchaumet; Pépita Kenesi Laurent - */
 
 
+
+PROC IMPORT file = "/home/u59521311/projet final/log.sas7bdat" out = projet.log dbms=tab ;
+run;
+
+data xy ;
+set projet.log;
+length tranche_age $5;
+select ; 
+when (r3<35) tranche_age="20-34";
+when (34<r3 and r3<50) tranche_age="35-49";
+otherwise tranche_age="50-65"; 
+end; 
+run;
+
+
+
+/*Répartition de l'échantillon en age : */
+proc sgplot data=xy;
+   histogram r3;
+   title "Répartition selon l'age";
+run;
+
+
+/*Répartition de l'échantillon selon le sexe*/
+proc sgplot data=xy;
+   histogram r2;
+   title "Répartition selon le sexe";
+run;
+
+/*Répartition de l'échantillon selon le revenu annuel*/
+
+proc sgplot data=xy;
+   histogram r12;
+   title "Répartition selon le revenu annuel";
+run;
+
+/*Répartition de l'échantillon selon le statut marital*/
+
+proc sgplot data=xy;
+   histogram r13;
+   title "Répartition selon le statut marital";
+run;
+
+/*Répartition de l'échantillon selon la présence d'enfants*/
+
+proc sgplot data=xy;
+   histogram r14;
+   title "Répartition selon la présence d'enfants";
+run;
