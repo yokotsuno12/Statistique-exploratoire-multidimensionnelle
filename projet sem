@@ -124,3 +124,16 @@ var = ia1_2 ia1_3 ia1_4 ia1_5 ia1_6 ia1_7 ia1_8 ia1_9 ia1_10 ia1_11 ia1_15 ia1_1
 run;
 
 /*Commentez la solution avec 6 facteurs retenus*/
+
+/*Question 4 : */
+
+data projet.pcarenamed ;
+set projet.pca ; 
+rename Factor1 = Groupe1 Factor2 = Groupe2 Factor3 = Groupe3 Factor4 = Groupe4 Factor5 = Groupe5 Factor6 = Groupe6;
+run;
+
+
+
+
+
+
