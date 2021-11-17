@@ -114,7 +114,15 @@ format ia1_: prob_achat.;
 run;
 
 proc factor data=projet.don_ia1 R=V;
-run; 
+/* On retient 6 axes, car ce sont les seul qui possèdent une valeur propre supérieur à 1.*/
+run;
+
+/*on choisi 6 variables*/
+proc factor data=projet.don_ia1 n=6 out=projet.pca plot;
+run;
+/*On a 6 facteurs correspondant à 6 groupes de produit. Le diagramme de corrélation
+nous montre le degrés d'appartenance de chaque variable à un groupe. Par exemple, le facteur
+1 est corrélé à toutes les variables, donc tous les produit appartiennent au groupe 1.*/
 
 
 /*Question 3 : */
