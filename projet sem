@@ -1,16 +1,31 @@
+libname projet "/home/u59481623/projet";
+
 /* PROJET SEM - Chaima Abdellali; Léo Déchaumet; Pépita Kenesi Laurent - */
 
 
 
 
 /* Question 1 : On importe les données */
-PROC IMPORT file = "/home/u59521311/projet final/don2.sas7bdat" out = projet.don dbms=tab ;
+/*PROC IMPORT file = "/home/u59521311/projet final/don2.sas7bdat" out = projet.don dbms=tab ;
 run;
 
 PROC IMPORT file = "/home/u59521311/projet final/log.sas7bdat" out = projet.log dbms=tab ;
-run; /*Remarque : c'est la transposée de projet.don*/ 
+run;*/ /*Remarque : c'est la transposée de projet.don*/ 
 
 /* On prépare les formats pour la question 2*/
+
+data projet.don3;
+set projet.don2;
+if item=. then newid = var; else newid = CATX('_' , var,item);
+drop var;
+drop item;
+run;
+
+proc transpose data=projet.don3 out=projet.don2_transpose(drop=_name_);
+by nuq;
+id newid;
+run;
+
 proc format;
 	value rdeux 1="Male" 2="Female";
 run;
@@ -22,10 +37,10 @@ proc format;
 run;
 
 /* Questions 2 et 3 : On modifie les formats et on ajoute la variable tranche_age dans le data */
-data xy ;
+data projet.don_formated ;
 format r2 rdeux. ; 
 format r5 rcinq. ;
-set projet.log;
+set projet.don2_transpose;
 length tranche_age $5;
 select ; 
 when (r3<35) tranche_age="20-34";
@@ -37,47 +52,47 @@ run;
 /*Question 4*/
 
 /*Répartition de l'échantillon en age : */
-proc sgplot data=xy;
+proc sgplot data=projet.don_formated;
    histogram r3;
    title "Répartition selon l'age";
 run;
 
 
 /*Répartition de l'échantillon selon le sexe*/
-proc sgplot data=xy;
+proc sgplot data=projet.don_formated;
    histogram r2;
    title "Répartition selon le sexe";
 run;
 
 /*Répartition de l'échantillon selon le revenu annuel*/
 
-proc sgplot data=xy;
+proc sgplot data=projet.don_formated;
    histogram r12;
    title "Répartition selon le revenu annuel";
 run;
 
 /*Répartition de l'échantillon selon le statut marital*/
 
-proc sgplot data=xy;
+proc sgplot data=projet.don_formated;
    histogram r13;
    title "Répartition selon le statut marital";
 run;
 
 /*Répartition de l'échantillon selon la présence d'enfants*/
 
-proc sgplot data=xy;
+proc sgplot data=projet.don_formated;
    histogram r14;
    title "Répartition selon la présence d'enfants";
 run;
 
 /*Question 5*/
 
-proc sgplot data=projet.log_formated;
+proc sgplot data=projet.don_formated;
 histogram R2;
 title "repartition homme femme";
 run;
 
-proc freq data=projet.log_formated;
+proc freq data=projet.don_formated;
 tables r2 * cognac / cellchi2 chisq nocol nofreq;
 run;
 /*a. Les hommes et les femmes consomment-ils de la même façon du cognac ?
@@ -85,16 +100,17 @@ Réponse : On remarque que les hommes consomment en moyenne plus souvent du cogn
 On a environ 49 % de réponses positives chez les hommes et 45% de réponses positives chez les femmes. 
 Donc environ 4% d'écart : mais est-ce représentatif ? On a 26.14 % de femmes sur 264 personnes qui ont répondu au questionnaire, ce qui représente 69 personnes. */
 
-proc freq data=projet.log_formated;
+proc freq data=projet.don_formated;
 tables tranche_age * cognac / cellchi2 chisq nocol nofreq;
 run;
 
-/*PARTIE B : pb : ia1_* ne contient que 0 ou 1*/
+proc format;
+value prob_achat 1=0 2=0 3=0 4=0.7 5=1;
+run;
 
-/*
-data xyz ;
-set xy ;
-if (ia1_1 = 1 or ia1_1 = 2 or ia1_1 = 3) then ia1_1 = 0;
-else if (ia1_1 = 4) then ia1_1 = 0.7 ;
-else  ia_1 = 1 ;
-run ; */
+data projet.don_ia1 (keep=ia1_:);
+set projet.don_formated;
+format ia1_: prob_achat.;
+run;
+
+proc factor data=projet.don_ia1 R=V;
