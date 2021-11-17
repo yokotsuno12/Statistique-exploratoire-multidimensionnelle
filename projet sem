@@ -114,3 +114,13 @@ format ia1_: prob_achat.;
 run;
 
 proc factor data=projet.don_ia1 R=V;
+run; 
+
+
+/*Question 3 : */
+
+proc factor data=projet.don_formated method = principal NFactors=26 ROTATE=varimax REORDER OUT=PIZZA1;
+var = ia1_2 ia1_3 ia1_4 ia1_5 ia1_6 ia1_7 ia1_8 ia1_9 ia1_10 ia1_11 ia1_15 ia1_17 ia1_18 ia1_19 ia1_21 ia1_22 ia1_23 ia1_24 ia1_25 ia1_30 ia1_31 ia1_33 ia1_34 ia1_35 ia1_36 ia1_37;
+run;
+
+/*Commentez la solution avec 6 facteurs retenus*/
