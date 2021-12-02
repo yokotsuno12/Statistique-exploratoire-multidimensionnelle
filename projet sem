@@ -4,7 +4,6 @@ libname projet "/home/u59481623/projet";
 
 
 
-
 /* Question 1 : On importe les données */
 /*PROC IMPORT file = "/home/u59521311/projet final/don2.sas7bdat" out = projet.don dbms=tab ;
 run;
@@ -115,33 +114,10 @@ run;
 
 proc factor data=projet.don_ia1 R=V;
 /* On retient 6 axes, car ce sont les seul qui possèdent une valeur propre supérieur à 1.*/
-run;
 
 /*on choisi 6 variables*/
-proc factor data=projet.don_ia1 n=6 out=projet.pca plot;
-run;
+proc factor data=projet.don_ia1 n=6 out=projet.pca;
 /*On a 6 facteurs correspondant à 6 groupes de produit. Le diagramme de corrélation
 nous montre le degrés d'appartenance de chaque variable à un groupe. Par exemple, le facteur
 1 est corrélé à toutes les variables, donc tous les produit appartiennent au groupe 1.*/
-
-
-/*Question 3 : */
-
-proc factor data=projet.don_formated method = principal NFactors=26 ROTATE=varimax REORDER OUT=PIZZA1;
-var = ia1_2 ia1_3 ia1_4 ia1_5 ia1_6 ia1_7 ia1_8 ia1_9 ia1_10 ia1_11 ia1_15 ia1_17 ia1_18 ia1_19 ia1_21 ia1_22 ia1_23 ia1_24 ia1_25 ia1_30 ia1_31 ia1_33 ia1_34 ia1_35 ia1_36 ia1_37;
-run;
-
-/*Commentez la solution avec 6 facteurs retenus*/
-
-/*Question 4 : */
-
-data projet.pcarenamed ;
-set projet.pca ; 
-rename Factor1 = Groupe1 Factor2 = Groupe2 Factor3 = Groupe3 Factor4 = Groupe4 Factor5 = Groupe5 Factor6 = Groupe6;
-run;
-
-
-
-
-
 
