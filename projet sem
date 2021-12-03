@@ -124,11 +124,11 @@ data projet.don_ia1 (keep=ia1_:);
 set projet.don_freq;
 run;
 
-proc factor data=projet.don_ia1 R=V;
+proc factor data=projet.don_ia1 R=V plots=all plot;
 /* On retient 6 axes, car ce sont les seul qui possèdent une valeur propre supérieur à 1.*/
 
 /*on choisi 6 variables*/
-proc factor data=projet.don_ia1 n=6 out=projet.pca;
+proc factor data=projet.don_ia1 r=v n=6 out=projet.pca plots=all;
 /*On a 6 facteurs correspondant à 6 groupes de produit. Le diagramme de corrélation
 nous montre le degrés d'appartenance de chaque variable à un groupe. Par exemple, le facteur
 1 est corrélé à toutes les variables, donc tous les produit appartiennent au groupe 1.*/
@@ -150,18 +150,29 @@ Proba_F5 = mean(ia1_33, ia1_34, ia1_35);
 Proba_F6 = mean(ia1_36, ia1_37);
 run;
 
-/*proc sort data=projet.don_groupes;
+proc sort data=projet.don_groupes;
 by tranche_age r2;
 run;
 
+/*B.7*/
 proc means data=projet.don_groupes mean ;
 var Proba_F:;
 by tranche_age r2;
-run;*/
-
-proc cluster data=projet.don_groupes method=ward ccc pseudo outtree=projet.tree;
-var Proba_F:;
-id NUQ;
 run;
 
-proc tree data=projet.tree;
+/*C.1*/
+proc cluster data=projet.don_groupes method=ward ccc pseudo outtree=projet.tree;
+var Proba_F:;
+id nuq;
+run;
+
+/*C.3*/
+proc tree data = projet.tree NCL = 5 out = projet.classes ;
+run ;
+
+/*C.3.a*/
+proc freq data=projet.classes;
+table clusname;
+run;
+
+
