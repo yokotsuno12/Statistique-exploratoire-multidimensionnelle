@@ -103,13 +103,25 @@ proc freq data=projet.don_formated;
 tables tranche_age * cognac / cellchi2 chisq nocol nofreq;
 run;
 
-proc format;
+/*proc format;
 value prob_achat 1=0 2=0 3=0 4=0.7 5=1;
+run;*/
+
+data projet.don_freq;
+set projet.don_formated;
+array produit ia1_2 -- ia1_37;
+do over produit;
+select (produit);
+	when(1,2,3) produit = 0;
+	when(4) produit = 0.7;
+	when(5) produit = 1;
+	otherwise;
+end;
+end;
 run;
 
 data projet.don_ia1 (keep=ia1_:);
-set projet.don_formated;
-format ia1_: prob_achat.;
+set projet.don_freq;
 run;
 
 proc factor data=projet.don_ia1 R=V;
@@ -121,3 +133,21 @@ proc factor data=projet.don_ia1 n=6 out=projet.pca;
 nous montre le degrés d'appartenance de chaque variable à un groupe. Par exemple, le facteur
 1 est corrélé à toutes les variables, donc tous les produit appartiennent au groupe 1.*/
 
+data projet.don_groupes;
+set projet.don_freq;
+Proba_F1 = (ia1_2 + ia1_3 + ia1_4 + ia1_5 + ia1_6 + ia1_7 + ia1_8 + ia1_9 + ia1_10 + ia1_11 + ia1_15 + ia1_17 + ia1_18 + ia1_19)/15;
+Proba_F2 = (ia1_21 + ia1_22 + ia1_23)/3;
+Proba_F3 = (ia1_24 + ia1_25)/2;
+Proba_F4 = (ia1_30 + ia1_31)/2;
+Proba_F5 = (ia1_33 + ia1_34 + ia1_35)/3;
+Proba_F6 = (ia1_36 + ia1_37)/2;
+run;
+
+proc sort data=projet.don_groupes;
+by tranche_age r2;
+run;
+
+proc means data=projet.don_groupes mean ;
+var Proba_F:;
+by tranche_age r2;
+run;
