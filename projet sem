@@ -175,4 +175,62 @@ proc freq data=projet.classes;
 table clusname;
 run;
 
+/*proc sort data=projet.don_groupes;
+    by id_;
+run;
+ 
+proc sort data=projet.classes;
+    by _ID;
+run;*/
+
+
+data projet.don_cluster;
+merge projet.don_groupes projet.classes;
+run;
+
+/*C.3.b
+On veut comprendre la dépendence entre la variable clusname (qualitative) et les variable Proba_F{1-6} (qualitative).
+On calcule cette dépendance avec ANOVA*/
+proc anova data=projet.don_cluster;
+class clusname;
+model Proba_F: = clusname;
+run;
+
+/*C.3.c
+Ici on veut calculer une dépendance entre des paires de variables qualitative.
+On utilise donc des test chi-square.*/
+
+proc freq data=projet.don_cluster;
+tables r2*clusname / chisq;
+run;
+
+proc freq data=projet.don_cluster;
+tables tranche_age*clusname / chisq;
+run;
+
+proc freq data=projet.don_cluster;
+tables r5*clusname / chisq;
+run;
+
+/*C.3.d.i*/
+data projet.don_cluster;
+set projet.don_cluster;
+if us5a_1 = 4 or us5a_1 = 5 then noIce = 1; else noIce = 0;
+if us5a_2 = 4 or us5a_2 = 5 then withIce = 1; else withIce = 0;
+if us5a_3 = 4 or us5a_3 = 5 then cocktail = 1; else cocktail = 0;
+run;
+
+/*C.3.d.ii*/
+proc freq data=projet.don_cluster;
+tables noIce*clusname / chisq;
+run;
+
+proc freq data=projet.don_cluster;
+tables withIce*clusname / chisq;
+run;
+
+proc freq data=projet.don_cluster;
+tables cocktail*clusname / chisq;
+run;
+
 
