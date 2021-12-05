@@ -114,7 +114,7 @@ run;
 
 /* On veut voir s'il y a une dépendance entre les variables tranche_age et cognac */
 proc freq data=projet.don_formated;
-tables tranche_age * cognac / cellchi2 chisq nocol nofreq;
+tables tranche_age * cognac / norow nocol deviation expected chisq;
 title "consommation de cognac par tranche d'age";
 run;
 /* La valeur du test statistique est 7.5542.
@@ -143,11 +143,11 @@ data projet.don_ia1 (keep=ia1_:);
 set projet.don_freq;
 run;
 
-proc factor data=projet.don_ia1 R=V plots=all plot;
+proc factor data=projet.don_ia1 R=V;
 /* On retient 6 axes, car ce sont les seul qui possèdent une valeur propre supérieur à 1.*/
 
 /*on choisi 6 variables*/
-proc factor data=projet.don_ia1 r=v n=6 out=projet.pca plots=all;
+proc factor data=projet.don_ia1 r=v n=6 out=projet.pca;
 /*On a 6 facteurs correspondant à 6 groupes de produit. Le diagramme de corrélation
 nous montre le degrés d'appartenance de chaque variable à un groupe. Par exemple, le facteur
 1 est corrélé à toutes les variables, donc tous les produit appartiennent au groupe 1.*/
@@ -189,7 +189,7 @@ run;
 /* B.7 
  * On calcule les moyenne des probabilités selon la classe d'age et le sexe.
  * On peut alors remarquer plusieurs choses intéressantes, entre autre : 
- * - Les hommes de 20 à 35 ans sont très attiré par le cognac
+ * - Les hommes de 20 à 35 ans sont très attiré par le cognac (probabilité d'achat moyenne : 0.7011429)
  * - La catégorie qui aime le plus le gin sont les femmes de 20 à 35 ans (probabilité d'achat moyenne : 0.4978261)
  * - Toutes les catégories sans exception ont une préference pour le cognac
  * - Le rhum est très peu apprecié des personnes de 50 à 65 ans (homme ou femme)
@@ -230,6 +230,7 @@ class clusname;
 model Proba_F: = clusname;
 means clusname/ hovtest=bartlett;
 run;
+/*
 
 /* C.3.c
  * Ici on veut calculer une dépendance entre des paires de variables qualitative.
@@ -237,16 +238,32 @@ run;
  */
 
 proc freq data=projet.don_cluster;
-tables r2*clusname / chisq;
+tables r2*clusname / norow nocol deviation expected chisq;
 run;
 
-proc freq data=projet.don_cluster;
-tables tranche_age*clusname / chisq;
-run;
+/* test d'indépendance entre le sexe et les clusters
+ * test = 8.1356
+ * pvalue = 0.0867
+ * pvalue > 0.05, donc on accepte l'hypothese d'indépendance
+ */
 
 proc freq data=projet.don_cluster;
-tables r5*clusname / chisq;
+tables tranche_age*clusname / norow nocol deviation expected chisq;
 run;
+/* test d'indépendance entre la tranche d'age et les clusters
+ * test = 72.9457 	
+ * pvalue < 0.0001
+ * pvalue < 0.05, donc on rejete l'hypothese d'indépendance
+ */
+
+proc freq data=projet.don_cluster;
+tables r5*clusname / norow nocol deviation expected chisq;
+run;
+/* test d'indépendance entre la consommation de vins spiritueux et les clusters
+ * test = 5.7120
+ * pvalue = 0.9299
+ * pvalue > 0.05, donc on accepte l'hypothese d'indépendance
+ */
 
 /*C.3.d.i*/
 data projet.don_cluster;
@@ -256,18 +273,36 @@ if us5a_2 = 4 or us5a_2 = 5 then withIce = 1; else withIce = 0;
 if us5a_3 = 4 or us5a_3 = 5 then cocktail = 1; else cocktail = 0;
 run;
 
-/*C.3.d.ii*/
+/* C.3.d.ii
+ * Maintenant, nous cherchons la relation entre la manière d'utiliser de la glace dans le cognac
+ * et les clusters.
+ */
 proc freq data=projet.don_cluster;
-tables noIce*clusname / chisq;
+tables noIce*clusname / norow nocol deviation expected chisq;
 run;
+/* Pas de glace :
+ * test = 3.5943 	
+ * pvalue = 0.4637
+ * pvalue > 0.05, donc on accepte l'hypothese d'indépendance
+ */
 
 proc freq data=projet.don_cluster;
-tables withIce*clusname / chisq;
+tables withIce*clusname / norow nocol deviation expected chisq;
 run;
+/* De la glace :
+ * test = 6.7996 	
+ * pvalue = 0.1469
+ * pvalue > 0.05, donc on accepte l'hypothese d'indépendance
+ */
 
 proc freq data=projet.don_cluster;
-tables cocktail*clusname / chisq;
+tables cocktail*clusname / norow nocol deviation expected chisq;
 run;
+/* Le cognac en cocktail :
+ * test = 5.4605
+ * pvalue = 0.2432
+ * pvalue > 0.05, donc on accepte l'hypothese d'indépendance
+ */
 
 /*D.1*/
 proc logistic data=projet.log plots=roc;
