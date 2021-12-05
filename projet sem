@@ -11,8 +11,15 @@ run;
 PROC IMPORT file = "/home/u59521311/projet final/log.sas7bdat" out = projet.log dbms=tab ;
 run;*/ /*Remarque : c'est la transposée de projet.don*/ 
 
-/* On prépare les formats pour la question 2*/
-
+/* On prépare les variables en fusionnant les colonnes var et item,
+ * pour former une nouvelle colonne newid.
+   
+ * Exemple:
+ * var  item    ->    newid
+ * ia1  2             ia1_2 
+ * ia1  3             ia1_3
+ * r2   -             r2    
+ */
 data projet.don3;
 set projet.don2;
 if item=. then newid = var; else newid = CATX('_' , var,item);
@@ -25,10 +32,13 @@ by nuq;
 id newid;
 run;
 
+/* On prépare les formats pour la question 2 */
+/* Format pour r2 */
 proc format;
 	value rdeux 1="Male" 2="Female";
 run;
 
+/* Format pour r5 */
 proc format;
 	value rcinq 1="Never" 2="Less often" 3="Once every 4 to 6 months"
 	4="Once every 2 or 3 months" 5="1 to 3 times per month"
@@ -64,21 +74,18 @@ proc sgplot data=projet.don_formated;
 run;
 
 /*Répartition de l'échantillon selon le revenu annuel*/
-
 proc sgplot data=projet.don_formated;
    histogram r12;
    title "Répartition selon le revenu annuel";
 run;
 
 /*Répartition de l'échantillon selon le statut marital*/
-
 proc sgplot data=projet.don_formated;
    histogram r13;
    title "Répartition selon le statut marital";
 run;
 
 /*Répartition de l'échantillon selon la présence d'enfants*/
-
 proc sgplot data=projet.don_formated;
    histogram r14;
    title "Répartition selon la présence d'enfants";
@@ -92,21 +99,32 @@ title "repartition homme femme";
 run;
 
 proc freq data=projet.don_formated;
-tables r2 * cognac / cellchi2 chisq nocol nofreq;
+tables r2 * cognac / norow nocol deviation expected chisq;
+title "consommation de cognac par homme femme";
 run;
-/*a. Les hommes et les femmes consomment-ils de la même façon du cognac ?
-Réponse : On remarque que les hommes consomment en moyenne plus souvent du cognac que les femmes: 
-On a environ 49 % de réponses positives chez les hommes et 45% de réponses positives chez les femmes. 
-Donc environ 4% d'écart : mais est-ce représentatif ? On a 26.14 % de femmes sur 264 personnes qui ont répondu au questionnaire, ce qui représente 69 personnes. */
+/* a. Les hommes et les femmes consomment-ils de la même façon du cognac ?
+ * Réponse : On remarque que les hommes consomment en moyenne plus souvent du cognac que les femmes: 
+ * On a environ 49 % de réponses positives chez les hommes et 45% de réponses positives chez les femmes. 
+ * Donc environ 4% d'écart : mais est-ce représentatif ? On a 26.14 % de femmes sur 264 personnes qui ont répondu au questionnaire,
+ * ce qui représente 69 personnes.
+ * On analyse le test de chi 2.
+ * La valeur du test est de 0.3781, la pvalue est de 0.5386. La pvalue est assez haute, on peut donc accepter
+ * le fait que le sexe de la personne n'a pas d'influence significative sur la manière de consommer du cognac
+ */
 
+/* On veut voir s'il y a une dépendance entre les variables tranche_age et cognac */
 proc freq data=projet.don_formated;
 tables tranche_age * cognac / cellchi2 chisq nocol nofreq;
+title "consommation de cognac par tranche d'age";
 run;
+/* La valeur du test statistique est 7.5542.
+ * La probabilité de retrouvé cette valeur dans une distribution suivant la loi du chi 2 est de 0.0229 (en dessous de
+ * 0.05), donc trop faible. On rejete donc l'hypothese nulle, à savoir les variables tranche_age et cognac sont
+ * indépendante.
+ * Donc, selon notre jeu de donnée l'age à une influence sur la consommation de cognac.
+ */
 
-/*proc format;
-value prob_achat 1=0 2=0 3=0 4=0.7 5=1;
-run;*/
-
+/* Pour toutes les variables de type ia1_*, on remplace 1,2,3 par 0, 4 par 0.7 et 5 par 1 */
 data projet.don_freq;
 set projet.don_formated;
 array produit ia1_2 -- ia1_37;
@@ -120,6 +138,7 @@ end;
 end;
 run;
 
+/* Une nouvelle table en ne gardant que les variables de type ia1, pour la PCA */
 data projet.don_ia1 (keep=ia1_:);
 set projet.don_freq;
 run;
@@ -133,14 +152,17 @@ proc factor data=projet.don_ia1 r=v n=6 out=projet.pca plots=all;
 nous montre le degrés d'appartenance de chaque variable à un groupe. Par exemple, le facteur
 1 est corrélé à toutes les variables, donc tous les produit appartiennent au groupe 1.*/
 
+/* On assigne chaques produit a des groupes :
+ *   Groupe 1 : les cognacs
+ *   Groupe 2 : les vins
+ *   Groupe 3 : les whisky
+ *   Groupe 4 : les rhums
+ *   Groupe 5 : les vodkas
+ *   Groupe 6 : les gins
+ * On calcule ensuite les probabilités pour chaque groupe de produit (Proba_F1 à Proba_F6)
+ */
 data projet.don_groupes;
 set projet.don_freq;
-/*Proba_F1 = (ia1_2 + ia1_3 + ia1_4 + ia1_5 + ia1_6 + ia1_7 + ia1_8 + ia1_9 + ia1_10 + ia1_11 + ia1_15 + ia1_17 + ia1_18 + ia1_19)/14;
-Proba_F2 = (ia1_21 + ia1_22 + ia1_23)/3;
-Proba_F3 = (ia1_24 + ia1_25)/2;
-Proba_F4 = (ia1_30 + ia1_31)/2;
-Proba_F5 = (ia1_33 + ia1_34 + ia1_35)/3;
-Proba_F6 = (ia1_36 + ia1_37)/2;*/
 
 Proba_F1 = mean(ia1_2, ia1_3, ia1_4, ia1_5, ia1_6, ia1_7, ia1_8, ia1_9, ia1_10, ia1_11, ia1_15, ia1_17, ia1_18, ia1_19);
 Proba_F2 = mean(ia1_21, ia1_22, ia1_23);
@@ -148,25 +170,44 @@ Proba_F3 = mean(ia1_24, ia1_25);
 Proba_F4 = mean(ia1_30, ia1_31);
 Proba_F5 = mean(ia1_33, ia1_34, ia1_35);
 Proba_F6 = mean(ia1_36, ia1_37);
+label Proba_F1 = "cognacs";
+label Proba_F2 = "vins";
+label Proba_F3 = "whisky";
+label Proba_F4 = "rhums";
+label Proba_F5 = "vodkas";
+label Proba_F6 = "gins";
 run;
 
+proc contents data=projet.don_groupes;
+run;
+
+/* Un tri necessaire pour l'instruction "by" de la procedure mean */
 proc sort data=projet.don_groupes;
 by tranche_age r2;
 run;
 
-/*B.7*/
+/* B.7 
+ * On calcule les moyenne des probabilités selon la classe d'age et le sexe.
+ * On peut alors remarquer plusieurs choses intéressantes, entre autre : 
+ * - Les hommes de 20 à 35 ans sont très attiré par le cognac
+ * - La catégorie qui aime le plus le gin sont les femmes de 20 à 35 ans (probabilité d'achat moyenne : 0.4978261)
+ * - Toutes les catégories sans exception ont une préference pour le cognac
+ * - Le rhum est très peu apprecié des personnes de 50 à 65 ans (homme ou femme)
+ */
 proc means data=projet.don_groupes mean ;
 var Proba_F:;
 by tranche_age r2;
 run;
 
-/*C.1*/
+/* C.1 */
 proc cluster data=projet.don_groupes method=ward ccc pseudo outtree=projet.tree;
 var Proba_F:;
 id nuq;
 run;
 
-/*C.3*/
+/* C.3
+ * On choisit 5 classes
+ */
 proc tree data = projet.tree NCL = 5 out = projet.classes ;
 run ;
 
@@ -175,30 +216,25 @@ proc freq data=projet.classes;
 table clusname;
 run;
 
-/*proc sort data=projet.don_groupes;
-    by id_;
-run;
- 
-proc sort data=projet.classes;
-    by _ID;
-run;*/
-
 
 data projet.don_cluster;
 merge projet.don_groupes projet.classes;
 run;
 
-/*C.3.b
-On veut comprendre la dépendence entre la variable clusname (qualitative) et les variable Proba_F{1-6} (qualitative).
-On calcule cette dépendance avec ANOVA*/
-proc anova data=projet.don_cluster;
+/* C.3.b
+ * On veut comprendre la dépendence entre la variable clusname (qualitative) et les variable Proba_F{1-6} (qualitative).
+ * On calcule cette dépendance avec ANOVA
+ */
+proc GLM data=projet.don_cluster;
 class clusname;
 model Proba_F: = clusname;
+means clusname/ hovtest=bartlett;
 run;
 
-/*C.3.c
-Ici on veut calculer une dépendance entre des paires de variables qualitative.
-On utilise donc des test chi-square.*/
+/* C.3.c
+ * Ici on veut calculer une dépendance entre des paires de variables qualitative.
+ * On utilise donc des test chi-square.
+ */
 
 proc freq data=projet.don_cluster;
 tables r2*clusname / chisq;
@@ -233,4 +269,8 @@ proc freq data=projet.don_cluster;
 tables cocktail*clusname / chisq;
 run;
 
-
+/*D.1*/
+proc logistic data=projet.log plots=roc;
+class r2 clage r12 r13 r14 us5a_1 us5a_2 us5a_3 / param=ref;
+model classe5 = r2 clage r12 r13 r14 us5a_1 us5a_2 us5a_3;
+run;
